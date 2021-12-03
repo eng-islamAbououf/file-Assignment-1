@@ -7,6 +7,12 @@
 #IncludeRegexTransform: 
 
 D:/work/fileAssignment/main.cpp
-bits/stdc++.h
+iostream
+-
+fstream
+-
+string
+-
+cstring
 -
 
