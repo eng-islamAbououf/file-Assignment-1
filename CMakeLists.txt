@@ -3,4 +3,4 @@ project(fileAssignment)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(fileAssignment main.cpp)
+add_executable(fileAssignment main.cpp Department.h Employee.h)

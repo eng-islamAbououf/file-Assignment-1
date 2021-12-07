@@ -80,6 +80,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="D:/work/fileAssignment/Department.h">
+			<Option target="fileAssignment"/>
+		</Unit>
+		<Unit filename="D:/work/fileAssignment/Employee.h">
+			<Option target="fileAssignment"/>
+		</Unit>
 		<Unit filename="D:/work/fileAssignment/main.cpp">
 			<Option target="fileAssignment"/>
 		</Unit>
