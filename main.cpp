@@ -1,4 +1,3 @@
-//#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -17,6 +16,9 @@ struct Department{
     char dept_name [50];
     char dept_manager [50];
 };
+struct primaryIndex{
+    int key;
+};
 
 const char DELETE_FLAG = '*';
 const char ACTIVE_FLAG = ' ';
@@ -32,16 +34,16 @@ private:
     //int RRN;
 
 public:
-    const char *getEmployeeId() const;
+    string getEmployeeId() const;
 
-    const char *getEmployeeName() const;
+    string getEmployeeName() const;
 
     const char *getEmployeePosition() const;
 
     Employee();
     Employee( string , string , string );
     //void setRRN(int);
-    int writeEmployeeLengthIndecator(fstream &);
+    int writeEmployeeLengthIndicator(fstream &file);
     
     static bool deleteEmployeeByRRN(int , fstream &);
     //static Employee GetEmployeeByRRN(int , fstream &);
@@ -68,8 +70,6 @@ Employee::Employee()
     strcpy(employee_id,emptyStr.c_str());
 }
 Employee::~Employee(){}
-
-
 void Employee::readEmployee(fstream &infile) {
     char c;
     int nextDel = -1;
@@ -89,7 +89,6 @@ void Employee::readEmployee(fstream &infile) {
     infile.read(employee_id, 10);
     //cout<<"id: "<<employee_id<<endl;
 }
-
 bool Employee::deleteEmployeeByRRN(int RNN, fstream &file)
 {
     int lastDeletedRecord = -1, numOfRecords = 0;
@@ -115,9 +114,7 @@ bool Employee::deleteEmployeeByRRN(int RNN, fstream &file)
 
     return true;
 }
-
-
-int Employee::writeEmployeeLengthIndecator(fstream &file)
+int Employee::writeEmployeeLengthIndicator(fstream &file)
 {
     //RRN = -1;
     int lastDeletedRecord = -1, nextDeletedRecord = -1;
@@ -146,7 +143,6 @@ int Employee::writeEmployeeLengthIndecator(fstream &file)
 
     return 1;
 }
-
 void Employee::writeEmployee(fstream &outfile) {
     int nextDel = -1;
     outfile.put(ACTIVE_FLAG);
@@ -155,8 +151,6 @@ void Employee::writeEmployee(fstream &outfile) {
     outfile.write(employee_position, 10);
     outfile.write(employee_id, 10);
 }
-
-
 istream& operator >> (istream & str, Employee & s)
 {
     string ss;
@@ -168,7 +162,6 @@ istream& operator >> (istream & str, Employee & s)
     strcpy(s.employee_id, ss.c_str());
     return str;
 }
-
 ostream& operator << (ostream & str, Employee & s)
 {
     str<<s.employee_name<<endl;
@@ -176,21 +169,70 @@ ostream& operator << (ostream & str, Employee & s)
     str<<s.employee_id<<endl;
     return str;
 }
-
-const char *Employee::getEmployeeId() const {
+string Employee::getEmployeeId() const {
     return employee_id;
 }
-
-const char *Employee::getEmployeeName() const {
+string Employee::getEmployeeName() const {
     return employee_name;
 }
-
 const char *Employee::getEmployeePosition() const {
     return employee_position;
 }
 
-void addEmployee(Employee emp,fstream& file ){
+void addDepartment(Department dept,fstream& file,  fstream& indexFile, fstream& secIndexFile){
+    string key = "";
     file.seekp(0,ios::end);
+    indexFile.seekp(0,ios::end);
+    secIndexFile.seekp(0, ios::end);
+
+    string x = dept.dept_name;
+    x += "|" ;
+    x += dept.dept_id;
+    x += "|" ;
+    x += dept.dept_manager;
+    x += "|" ;
+    key +=dept.dept_name;
+    key +=dept.dept_id;
+    key+="|";
+    key+= to_string(file.tellp());
+    key +="|";
+
+    string secondaryKey = dept.dept_id;
+    secondaryKey +="|-1|";
+
+    int size = x.size() ;
+    int keySize = key.size();
+    int secondaryKeySize = secondaryKey.size();
+
+    string record = to_string(size) + "|"+x;
+    string keyRecord = to_string(keySize)+"|"+key;
+    string secondaryKeyRecord = to_string(secondaryKeySize) +"|"+ secondaryKey;
+
+    size = record.size();
+    keySize = keyRecord.size();
+    secondaryKeySize = secondaryKeyRecord.size();
+
+    file.write(record.c_str() ,size+1);
+    indexFile.write(keyRecord.c_str(), keySize+1);
+    secIndexFile.write(secondaryKeyRecord.c_str(), secondaryKeySize+1);
+
+}
+void addEmpToLList(Employee emp, fstream &linkedList, fstream &secondaryFile){
+    string empName = emp.getEmployeeName();
+    secondaryFile.seekp(4,ios::beg);
+    int a;
+    secondaryFile>>a;
+    if (a==-1){
+        linkedList.seekp(0, ios::end);
+        string labelRecord = empName+"|"+"-1";
+        linkedList.write(labelRecord.c_str(), labelRecord.size());
+    }
+
+}
+void addEmployee(Employee emp,fstream& file,  fstream& indexFile){
+    string key = "";
+    file.seekp(0,ios::end);
+    indexFile.seekp(0, ios::end);
     string x = emp.getEmployeeName() ;
     x += "|" ;
     x += emp.getEmployeePosition() ;
@@ -198,8 +240,18 @@ void addEmployee(Employee emp,fstream& file ){
     x += emp.getEmployeeId() ;
     x += "|" ;
     int size = x.size() ;
-    string record = to_string(size) + x ;
-    file.write(record.c_str() ,size+3);
+    key+=emp.getEmployeeName();
+    key +=emp.getEmployeeId();
+    key+="|";
+    key += to_string(file.tellp());
+    key+="|";
+
+    string record = to_string(size) + "|"+x ;
+    size = record.size();
+    string keyRecord = to_string(key.size())+"|"+key;
+
+    file.write(record.c_str() ,size+1);
+    indexFile.write(keyRecord.c_str(), keyRecord.size()+1);
 }
 //Employee parseEmp(string x){
 //    int count = 0  , p = 0;
@@ -229,10 +281,10 @@ void getEmployee1(fstream &file) {
     file.seekg(0 , ios::beg) ;
     int size ;
     file >> size ;//111
-    char x[size] ;
-    file.read(x, size) ;
-    for (int i = 0; i < size; ++i) {
-        cout << x[i] ;
+    char x;
+    //file.read(x, size);
+    while ( file>>x) {
+        cout << x;
     }
     cout << endl ;
 }
@@ -241,10 +293,16 @@ int main()
     char c ;
     bool b;
     Employee employee;
+    Department dept;
 
 
 
     fstream f("EmployeesData.txt", ios::in | ios::out |ios::app);
+    fstream pFile("primaryIndex.txt", ios::in | ios::out |ios::app);
+    fstream fDept("DepartmentData.txt", ios::in | ios::out |ios::app);
+    fstream primDeptFile("pIndexDepartment.txt", ios::in | ios::out | ios::app);
+    fstream secDeptFile("secoDeptFile.txt", ios::in | ios::out |ios::app);
+
     if(!f)
     {
         cout << "couldn't open file"<<endl;
@@ -255,6 +313,10 @@ int main()
 
     do {
         f.seekp(0,ios::end);
+        pFile.seekp(0, ios::end);
+        fDept.seekp(0,ios::end);
+        primDeptFile.seekp(0, ios::end);
+        secDeptFile.seekp(0, ios::end);
 //        int pos = f.tellp();
 //        if(pos <= 0)
 //        {
@@ -266,7 +328,9 @@ int main()
         cout<< "V for View" <<endl;
         cout<< "I for insert" <<endl;
         cout<< "D for delete" <<endl;
+        cout<< "z for insert Department" <<endl;
         cout<< "E for Exit" <<endl;
+
         cin>>c;
 
         switch(c)
@@ -280,7 +344,7 @@ int main()
             case 'i':
                 cout<< "Enter Employee name, position, and ID" <<endl;
                 cin >> employee;
-                addEmployee(employee,f);
+                addEmployee(employee,f, pFile);
                 //cout << "Employee inserted" << endl ;
                 break;
             case 'D':
@@ -291,6 +355,13 @@ int main()
                 if(b) cout << "sucessfully deleted"<<endl;
                 else cout<< "Error, Invalid RRN or already deleted"<<endl;
                 break;
+            case 'z':
+                cout<< "Enter Department name, Manager name and ID" <<endl;
+                cin >> dept.dept_name>>dept.dept_manager>>dept.dept_id;
+                addDepartment(dept, fDept, primDeptFile, secDeptFile);
+                //cout << "Employee inserted" << endl ;
+                break;
+
             default:
                 break;
         }
@@ -298,7 +369,12 @@ int main()
     } while (c!='E' && c!='e');
 
     f.close();
+    pFile.close();
 
+    fDept.close();
+    primDeptFile.close();
+
+    secDeptFile.close();
     system("PAUSE");
     return EXIT_SUCCESS;
 }
