@@ -3,5 +3,6 @@
 
 CMakeFiles/fileAssignment.dir/main.cpp.obj: ../Department.h
 CMakeFiles/fileAssignment.dir/main.cpp.obj: ../Employee.h
+CMakeFiles/fileAssignment.dir/main.cpp.obj: ../Parser.h
 CMakeFiles/fileAssignment.dir/main.cpp.obj: ../main.cpp
 

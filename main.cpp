@@ -1,8 +1,7 @@
-#include <iostream>
 #include <fstream>
 #include <cstring>
 #include "Employee.h"
-using namespace std;
+#include "Parser.h"
 
 const char DELETE_FLAG = '*';
 const char ACTIVE_FLAG = ' ';
@@ -28,27 +27,9 @@ void printEmp(string id , Employee& employee);
 
 void printDepartment(string id , Department& department);
 
-void display_all(){
-    fstream emp ;
-    int size ;
-    Employee employee ;
-    char *x ;
-    emp.open("EmployeesData.txt" , ios::in) ;
-    cout<<setw(13)<< "Employee Id";
-    cout<<setw(20)<<"Employee Name";
-    cout<<setw(20)<<"Employee Position";
-    cout<<setw(20)<<"Department ID" << endl ;
-    while (emp.good()){
-        emp >> size ;
-        x = new char [size] ;
-        emp.read(x, size) ;
-        employee.setValues(x) ;
-        if (employee.getIsActive())
-            cout << employee ;
-    }
-    cout << endl ;
-    emp.close();
-}
+void write_query(Parser &parser);
+
+
 
 Index setIndex(string txt){
     Index x ;
@@ -125,10 +106,11 @@ string getEmployee(int offset) {
 
 void updateLastEmpID(int id ){
     fstream metaData ;
-    metaData.open(META_DATA , ios::out) ;
-    metaData.seekp(0 , ios::beg) ;
-    metaData << "LastID : " << to_string(id) ;
-    metaData.close() ;
+    metaData.open(META_DATA , ios::out | ios::in) ;
+    metaData.seekp(0) ;
+    string x = "LastEmpID : "+ to_string(id) ;
+    metaData <<  x ;
+    metaData.close();
 }
 void updateLastDeptID(int id ){
     fstream metaData ;
@@ -191,21 +173,61 @@ void reWriteFile(Index* arr , int size , string fileName ){
     file.close();
 }
 
+void display_all_Employees(){
+    Index arr [15] ;
+    Employee employee ;
+    int size = fillArray(arr , EMP_P_INDEX) ;
+    int index = 0 , counter = 0;
+    cout << endl ;
+
+    cout<<setw(14)<<"Employee ID";
+    cout<<setw(20)<<"Employee Name";
+    cout<<setw(20)<<"Employee Position";
+    cout<<setw(20)<<"Department ID" << endl ;
+
+    while (index<size){
+        if (arr[index].isActive){
+            employee.setValues(getEmployee(arr[index].offset)) ;
+            cout << (++counter) << employee ;
+        }
+        index++ ;
+    }
+}
+
+void display_all_Departments(){
+    Index arr [15] ;
+    Department department ;
+    int size = fillArray(arr , DEPT_P_INDEX) ;
+    int index = 0  , counter = 0;
+    cout << endl ;
+
+    cout<<setw(14)<<"Department ID";
+    cout<<setw(20)<<"Department Name";
+    cout<<setw(20)<<"Department Manager" << endl ;
+
+    while (index<size){
+        if (arr[index].isActive){
+            department.setValues(getDepartment(arr[index].offset)) ;
+            cout << (++counter) << department ;
+        }
+        index++ ;
+    }
+}
+
 int main()
 {
-
-
     int choice ;
     Employee employee;
     Department department ;
     string id  ;
+    Parser parser ;
 
     int EMP_ID = getLastEmpID() ;
     int DEPT_ID = getLastDeptID() ;
 
     do {
 
-        cout<< "Choose the operation to perform"<<endl;
+        cout<< "\nChoose the operation to perform"<<endl;
         cout<< "1- add New Employee " <<endl;
         cout<< "2- add New Department " <<endl;
         cout<< "3- Delete Employee (ID) " <<endl;
@@ -221,7 +243,11 @@ int main()
         switch (choice) {
             case 1:
                 cin>>employee ;
-                employee.setDeptID("252624") ;
+                cout << "\nChoose Your Department\n" ;
+                display_all_Departments() ;
+                cout << "Enter Department ID \n" ;
+                cin >> id ;
+                employee.setDeptID(id) ;
                 employee.setID(to_string(++EMP_ID)) ;
                 addNewEmployee(employee) ;
                 cout <<endl << "New Employee inserted Successfully \n" << employee << endl  ;
@@ -232,6 +258,7 @@ int main()
                 department.setID(to_string(++DEPT_ID)) ;
                 addNewDepartment(department) ;
                 updateLastDeptID(DEPT_ID) ;
+                cout << "\n Department created Successfully\n" << department ;
                 break;
             case 3:
                 cout << "Enter Employee ID : " << endl ;
@@ -249,7 +276,7 @@ int main()
                 printEmp(id ,employee) ;
                 break;
             case 6:
-
+                display_all_Employees() ;
                 break;
             case 7:
                 cout << "Enter Department ID : " << endl ;
@@ -259,52 +286,19 @@ int main()
             case 8:
                 break;
             case 9:
+                write_query(parser) ;
                 break;
         }
-//
-//
-//        if (c==1) {
-//        }else if (c==3) {
-//            string id;
-//            cout << "Enter Emp ID : " << endl;
-//            cin >> id;
-//            //fill array
-//            //empPrimaryIndex.seekg(0, ios::beg);
-//            int i = fillArray(arr);
-//            int res = BSearch(arr, 0, i - 1, id);
-//
-//            empPrimaryIndex.seekp(0, ios::beg) ;
-//            if (res == -1)
-//                cout << "Employee Not Found \n";
-//            else {
-//                arr[res].isActive = false ;
-//                reWriteFile(arr,i) ;
-//                reWriteDataFile(arr[res].offset) ;
-//            }
-//        }else if (c==5){
-//
-//            string id  ;
-//            cout << "Enter Emp ID : " << endl ;
-//            cin >> id ;
-//
-//            //fill array
-//            empPrimaryIndex.seekg(0 , ios :: beg) ;
-//            int i = fillArray(arr) ;
-//            int res = BSearch(arr , 0 , i-1 , id);
-//
-//            if (res == -1)
-//                cout << "Employee Not Found \n" ;
-//            else {
-//                Index r = arr[res] ;
-//                employee.setValues(getEmployee(r.offset, empData));
-//                cout << employee << endl;
-//            }
-//        }else if (c==2){
-//            display_all() ;
-//        }
     } while (choice!=10);
 
     return EXIT_SUCCESS;
+}
+
+void write_query(Parser &parser) {
+    if (parser.parse()){
+
+    }else
+        cout << "\nQuery Not in right form !!\n" ;
 }
 
 void printDepartment(string id , Department& department) {

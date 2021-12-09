@@ -1,7 +1,5 @@
-#include <string>
-#include <iomanip>
 #include "Department.h"
-using namespace std ;
+
 class Employee
 {
 private:
@@ -9,7 +7,6 @@ private:
     char dept_id [30];
     char employee_name [50];
     char employee_position [50];
-    bool isActive = true ;
 public:
 
     const char *getEmployeeId() const{
@@ -26,14 +23,6 @@ public:
     }
     void setID(string id){
         strcpy(employee_id , id.c_str()) ;
-    }
-
-    void setIsActive(bool isActive) {
-        Employee::isActive = isActive;
-    }
-
-    bool getIsActive() const {
-        return isActive;
     }
 
     void setDeptID(string id){
@@ -65,10 +54,6 @@ public:
                 temp+=record[i] ;
             }
         }
-    }
-    // name|id|position|deptID
-    Employee(string record){
-        setValues(record) ;
     }
 
     friend istream& operator >> (istream &str, Employee &emp){
