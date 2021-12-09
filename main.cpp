@@ -1,5 +1,6 @@
 #include <fstream>
 #include <cstring>
+#include<bits/stdc++.h>
 #include "Employee.h"
 #include "Parser.h"
 
@@ -7,6 +8,7 @@ const char DELETE_FLAG = '*';
 const char ACTIVE_FLAG = ' ';
 const string EMP_P_INDEX = "primary.txt" ;
 const string EMP_DATA = "EmployeesData.txt" ;
+const string EMP_SEC_INDEX = "EmpSecIndex.txt" ;
 const string DEPT_P_INDEX = "DeptPrimary.txt" ;
 const string DEPT_DATA = "DepartmentData.txt" ;
 const string META_DATA = "metaData.txt" ;
@@ -14,6 +16,11 @@ const string META_DATA = "metaData.txt" ;
 struct  Index{
     string id;
     int offset ;
+    bool isActive = true ;
+};
+struct  EmpSecIndex{
+    string dept_id;
+    vector<int> offset ;
     bool isActive = true ;
 };
 
@@ -45,8 +52,18 @@ Index setIndex(string txt){
     x.offset = stoi(txt.substr(index+1,txt.length()- index)) ;
     return x ;
 }
-
-void addNewEmployee(Employee emp){
+//void addEmpToSecIndex(Employee & employee ,int offset){
+//    fstream sec ;
+//    sec.open(EMP_SEC_INDEX , ios:: app) ;
+//    sec.seekp(0 , ios::end) ;
+//    if (sec.tellp()==0){
+//        sec << employee.getDeptId() << " " << to_string(offset) << "\n" ;
+//    }else {
+//
+//    }
+//    sec.close() ;
+//}
+void addNewEmployee(Employee &emp){
 
     fstream data ;
     fstream index ;
@@ -57,6 +74,7 @@ void addNewEmployee(Employee emp){
     index.seekp(0 , ios::end) ;
 
     int offset = data.tellp() ;
+    int offset1 = index.tellp() ;
     string x = " ";
     x += emp.getEmployeeName() ;
     x += "|" ;
@@ -80,6 +98,7 @@ void addNewEmployee(Employee emp){
 
     data.close() ;
     index.close() ;
+//    addEmpToSecIndex(emp , offset1) ;
 }
 
 string getDepartment(int offset) {
@@ -227,20 +246,20 @@ int main()
 
     do {
 
-        cout<< "\nChoose the operation to perform"<<endl;
-        cout<< "1- add New Employee " <<endl;
-        cout<< "2- add New Department " <<endl;
-        cout<< "3- Delete Employee (ID) " <<endl;
-        cout<< "4- Delete Department (ID) " <<endl;
-        cout<< "5- Print Employee (ID) " <<endl;
-        cout<< "6- Print Employee (Dept_ID) " <<endl;
-        cout<< "7- Print Department (ID) " <<endl;
-        cout<< "8- Print Department (Name) " <<endl;
-        cout<< "9- Write a Query" <<endl;
-        cout<< "10- Exit" <<endl;
+        cout << "\nChoose the operation to perform"<<endl
+         << "1- add New Employee " <<endl
+         << "2- add New Department " <<endl
+         << "3- Delete Employee (ID) " <<endl
+         << "4- Delete Department (ID) " <<endl
+         << "5- Print Employee (ID) " <<endl
+         << "6- Print Employee (Dept_ID) " <<endl
+         << "7- Print Department (ID) " <<endl
+         << "8- Print Department (Name) " <<endl
+         << "9- Write a Query" <<endl
+         << "10- Exit" <<endl;
         cin>>choice;
 
-        switch (choice) {
+        switch(choice) {
             case 1:
                 cin>>employee ;
                 cout << "\nChoose Your Department\n" ;
@@ -335,6 +354,11 @@ void deleteEmployee(string id) {
         cout<<"\nEmployee Not Found\n" ;
     else {
         arr[pos].isActive = false ;
+        fstream temp ;
+        temp.open(EMP_DATA , ios::app) ;
+        temp.seekp(arr[pos].offset+2) ;
+        temp.put(DELETE_FLAG) ;
+        temp.close() ;
         reWriteFile(arr , size , EMP_P_INDEX) ;
         cout << "\nEmployee with ID : " << arr[pos].id << " deleted successfully \n" ;
     }
