@@ -1,4 +1,5 @@
 #include <string>
+#include <iomanip>
 #include "Department.h"
 using namespace std ;
 class Employee
@@ -8,6 +9,7 @@ private:
     char dept_id [30];
     char employee_name [50];
     char employee_position [50];
+    bool isActive = true ;
 public:
 
     const char *getEmployeeId() const{
@@ -26,6 +28,14 @@ public:
         strcpy(employee_id , id.c_str()) ;
     }
 
+    void setIsActive(bool isActive) {
+        Employee::isActive = isActive;
+    }
+
+    bool getIsActive() const {
+        return isActive;
+    }
+
     void setDeptID(string id){
         strcpy(dept_id , id.c_str()) ;
     }
@@ -33,7 +43,7 @@ public:
     void setValues(string record){
         string temp = "" ;
         int counter = 0 ;
-        for (int i = 0; i < record.size(); ++i) {
+        for (int i = 1; i < record.size(); ++i) {
             if (record[i] == '|'){
                 switch (counter) {
                     case 0:
@@ -71,22 +81,13 @@ public:
         str>>ss;
         strcpy(emp.employee_position, ss.c_str());
 
-//        cout << "Enter Employee's Department ID : " ;
-//        str>>ss;
-//
-//        while (!Department::searchByID(ss)){
-//            cout << "Department don't found , please Enter Employee's Department ID Again : " ;
-//            str>>ss;
-//        }
-//
-//        strcpy(emp.dept_id,ss.c_str()) ;
         return str;
     }
     friend ostream& operator << (ostream &out , Employee &emp){
-        out<<"Employee Name : "<<emp.getEmployeeName()<<endl;
-        out<<"Employee Position : "<<emp.getEmployeePosition()<<endl;
-        out<<"Employee ID : "<<emp.getEmployeeId()<<endl;
-        out<<"Employee's Department ID : "<<emp.getDeptId()<<endl;
+        out<<setw(13)<<emp.getEmployeeId();
+        out<<setw(20)<<emp.getEmployeeName();
+        out<<setw(20)<<emp.getEmployeePosition();
+        out<<setw(20)<<emp.getDeptId() << endl ;
         return out;
     }
 };
